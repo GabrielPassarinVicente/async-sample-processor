@@ -24,7 +24,7 @@ services:
   # Backend API (.NET)
   backend:
     build:
-      context: "./ProcessamentoDeAmostras - BackEnd"
+      context: "./ProcessamentoDeAmostrasBackEnd"
       dockerfile: Dockerfile
     container_name: sensoranalysis_backend
     environment:
@@ -54,7 +54,7 @@ services:
   # Frontend (Nuxt/Vue)
   frontend:
     build:
-      context: "./ProcessamentoDeAmostras - FrontEnd"
+      context: "./ProcessamentoDeAmostrasFrontEnd"
       dockerfile: Dockerfile
       args:
         NUXT_PUBLIC_API_BASE_URL: http://localhost:${BACKEND_PORT:-8080}
