@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Itens de Solução/">
+    <File Path="Dockerfile" />
+  </Folder>
+  <Project Path="SensorAnalysis.API/SensorAnalysis.API.csproj" />
+  <Project Path="SensorAnalysis.Application/SensorAnalysis.Application.csproj" />
+  <Project Path="SensorAnalysis.Domain/SensorAnalysis.Domain.csproj" />
+  <Project Path="SensorAnalysis.Infrastructure/SensorAnalysis.Infrastructure.csproj" />
+</Solution>
