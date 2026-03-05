@@ -9,13 +9,13 @@ Por baixo dos panos, a **API em .NET 10** processa as amostras de forma assíncr
 ## 📁 Estrutura do Repositório
 
 ```
-Sensores Ambientais/
+async-sample-processor/
 ├── docker-compose.yml                      ← orquestra todos os serviços
 ├── .env.example                            ← variáveis de ambiente (copie para .env)
 ├── .gitignore
 ├── README.md                               ← você está aqui
-├── ProcessamentoDeAmostras - FrontEnd/     ← dashboard Nuxt 4 + Vue 3
-└── ProcessamentoDeAmostras - BackEnd/      ← API .NET 10 (DDD + Clean Architecture + RabbitMQ )
+├── ProcessamentoDeAmostrasFrontEnd/     ← dashboard Nuxt 4 + Vue 3
+└── ProcessamentoDeAmostrasBackEnd/      ← API .NET 10 (DDD + Clean Architecture + RabbitMQ )
 ```
 
 ---
@@ -27,7 +27,7 @@ Sensores Ambientais/
 ```bash
 # 1. Clone o repositório
 git clone <URL-DO-REPOSITORIO>
-cd Sensores Ambientais
+cd async-sample-processor
 
 # 2. Copie o arquivo de variáveis de ambiente
 cp .env.example .env
@@ -59,14 +59,14 @@ docker-compose up rabbitmq -d
 
 **Back-end:**
 ```bash
-cd "ProcessamentoDeAmostras - BackEnd/SensorAnalysis.API"
+cd "ProcessamentoDeAmostrasBackEnd/SensorAnalysis.API"
 dotnet run
 # API disponível em http://localhost:5279
 ```
 
 **Front-end:**
 ```bash
-cd "ProcessamentoDeAmostras - FrontEnd"
+cd "ProcessamentoDeAmostrasFrontEnd"
 yarn install
 yarn dev
 # Dashboard disponível em http://localhost:3000
