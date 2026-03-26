@@ -1,4 +1,6 @@
-﻿namespace SensorAnalysis.Domain.Entities;
+﻿using SensorAnalysis.Domain.Exceptions;
+
+namespace SensorAnalysis.Domain.Entities;
 
 public sealed class SensorSample
 {
@@ -20,10 +22,10 @@ public sealed class SensorSample
         double? dewPoint)
     {
         if (string.IsNullOrWhiteSpace(sensorId))
-            throw new ArgumentException("SensorId não pode ser vazio", nameof(sensorId));
+            throw new DomainException("SensorId não pode ser vazio");
 
         if (string.IsNullOrWhiteSpace(type))
-            throw new ArgumentException("Type não pode ser vazio", nameof(type));
+            throw new DomainException("Type não pode ser vazio");
 
         return new SensorSample
         {

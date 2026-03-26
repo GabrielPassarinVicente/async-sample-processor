@@ -1,3 +1,5 @@
+using SensorAnalysis.Domain.Exceptions;
+
 namespace SensorAnalysis.Domain.ValueObjects;
 
 public sealed class MetricThresholds
@@ -10,10 +12,10 @@ public sealed class MetricThresholds
     private MetricThresholds(double? alertMin, double? alertMax, double? criticalMin, double? criticalMax)
     {
         if (alertMin.HasValue && criticalMin.HasValue && criticalMin > alertMin)
-            throw new ArgumentException("Critical min must be lower than alert min");
+            throw new DomainException("Critical min must be lower than alert min");
 
         if (alertMax.HasValue && criticalMax.HasValue && criticalMax < alertMax)
-            throw new ArgumentException("Critical max must be higher than alert max");
+            throw new DomainException("Critical max must be higher than alert max");
 
         AlertMin = alertMin;
         AlertMax = alertMax;
