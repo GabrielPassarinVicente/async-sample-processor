@@ -2,31 +2,31 @@
 
 namespace SensorAnalysis.Domain.ValueObjects;
 
-public class MetricAnalysis
+public sealed class MetricAnalysis
 {
-    public StatusLevel Status { get; private set; }
-    public LimitType? LimitType { get; private set; }
-    public double? ThresholdValue { get; private set; }
+    public StatusLevel Status { get; init; }
+    public LimitType? LimitType { get; init; }
+    public double? ThresholdValue { get; init; }
 
     private MetricAnalysis() { }
 
-    public static MetricAnalysis CreateNormal() 
+    public static MetricAnalysis CreateNormal()
         => new() { Status = StatusLevel.Normal };
 
     public static MetricAnalysis CreateAlert(LimitType limitType, double threshold)
-        => new() 
-        { 
-            Status = StatusLevel.Alert, 
-            LimitType = limitType, 
-            ThresholdValue = threshold 
+        => new()
+        {
+            Status = StatusLevel.Alert,
+            LimitType = limitType,
+            ThresholdValue = threshold
         };
 
     public static MetricAnalysis CreateCritical(LimitType limitType, double threshold)
-        => new() 
-        { 
-            Status = StatusLevel.Critical, 
-            LimitType = limitType, 
-            ThresholdValue = threshold 
+        => new()
+        {
+            Status = StatusLevel.Critical,
+            LimitType = limitType,
+            ThresholdValue = threshold
         };
 
     public static MetricAnalysis CreateInvalid()

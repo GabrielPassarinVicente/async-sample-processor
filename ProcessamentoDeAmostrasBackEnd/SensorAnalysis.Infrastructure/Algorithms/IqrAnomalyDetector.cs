@@ -1,14 +1,15 @@
 ﻿using SensorAnalysis.Domain.Entities;
 using SensorAnalysis.Domain.Interfaces;
-using SensorAnalysis.Domain.ValueObjects;
 
 namespace SensorAnalysis.Infrastructure.Algorithms;
 
-public class IqrAnomalyDetector : IAnomalyDetector
+internal sealed class IqrAnomalyDetector : IAnomalyDetector
 {
-    public void Detect(List<SensorSample> validSamples, Dictionary<string, SampleAnalysis> analysisResults)
+    public IReadOnlySet<string> DetectAnomalies(IReadOnlyList<SensorSample> validSamples)
     {
-        if (validSamples.Count < 4) return;
+        var anomalies = new HashSet<string>();
+
+        if (validSamples.Count < 4) return anomalies;
 
         var temperatures = validSamples.Select(s => s.Temperature!.Value).ToList();
         var tempBounds = CalculateBounds(temperatures);
@@ -18,32 +19,25 @@ public class IqrAnomalyDetector : IAnomalyDetector
 
         foreach (var sample in validSamples)
         {
-            string key = $"{sample.SensorId}_{sample.Timestamp:O}";
-            var analysis = analysisResults[key];
-
             bool isTempAnomaly = sample.Temperature < tempBounds.Lower || sample.Temperature > tempBounds.Upper;
             bool isHumAnomaly = sample.Humidity < humBounds.Lower || sample.Humidity > humBounds.Upper;
 
             if (isTempAnomaly || isHumAnomaly)
-            {
-                analysis.MarkAsAnomaly();
-            }
+                anomalies.Add($"{sample.SensorId}_{sample.Timestamp:O}");
         }
+
+        return anomalies;
     }
 
-    private (double Lower, double Upper) CalculateBounds(List<double> values)
+    private static (double Lower, double Upper) CalculateBounds(List<double> values)
     {
         values.Sort();
         int n = values.Count;
 
         double q1 = values[n / 4];
         double q3 = values[(n * 3) / 4];
-
         double iqr = q3 - q1;
 
-        double lowerBound = q1 - 1.5 * iqr;
-        double upperBound = q3 + 1.5 * iqr;
-
-        return (lowerBound, upperBound);
+        return (q1 - 1.5 * iqr, q3 + 1.5 * iqr);
     }
 }

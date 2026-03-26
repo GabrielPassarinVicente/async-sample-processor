@@ -1,29 +1,28 @@
 using SensorAnalysis.Application.DTOs;
-using SensorAnalysis.Domain.Entities;
 using SensorAnalysis.Domain.ValueObjects;
 
 namespace SensorAnalysis.Application.Mappers;
 
 public static class SensorMapper
 {
-    public static AnalyzedSampleDto ToDto(SensorSample sample, SampleAnalysis analysis)
+    public static AnalyzedSampleDto ToDto(SampleAnalysisResult result)
     {
         return new AnalyzedSampleDto
         {
-            SensorId = sample.SensorId,
-            Type = sample.Type,
-            Timestamp = sample.Timestamp.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-            Temperature = sample.Temperature,
-            Humidity = sample.Humidity,
-            DewPoint = sample.DewPoint,
+            SensorId = result.SensorId,
+            Type = result.SensorType,
+            Timestamp = result.Timestamp.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            Temperature = result.Temperature,
+            Humidity = result.Humidity,
+            DewPoint = result.DewPoint,
             Analysis = new AnalysisDto
             {
-                Temperature = MapMetric(analysis.Temperature),
-                Humidity = MapMetric(analysis.Humidity),
-                DewPoint = MapMetric(analysis.DewPoint),
-                Anomaly = new AnomalyDto 
-                { 
-                    Status = analysis.AnomalyStatus.ToString().ToLowerInvariant() 
+                Temperature = MapMetric(result.Analysis.Temperature),
+                Humidity = MapMetric(result.Analysis.Humidity),
+                DewPoint = MapMetric(result.Analysis.DewPoint),
+                Anomaly = new AnomalyDto
+                {
+                    Status = result.Analysis.AnomalyStatus.ToString().ToLowerInvariant()
                 }
             }
         };

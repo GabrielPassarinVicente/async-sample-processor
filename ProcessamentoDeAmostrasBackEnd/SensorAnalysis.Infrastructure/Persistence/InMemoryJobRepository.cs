@@ -4,7 +4,7 @@ using SensorAnalysis.Domain.Interfaces;
 
 namespace SensorAnalysis.Infrastructure.Persistence;
 
-public class InMemoryJobRepository : IJobRepository
+internal sealed class InMemoryJobRepository : IJobRepository
 {
     private readonly ConcurrentDictionary<string, JobStatus> _jobs = new();
 

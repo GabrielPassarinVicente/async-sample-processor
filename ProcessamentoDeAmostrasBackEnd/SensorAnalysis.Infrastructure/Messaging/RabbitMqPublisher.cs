@@ -22,7 +22,7 @@ internal class RabbitMqNotificationDto
     public string Reason { get; set; } = string.Empty;
 }
 
-public class RabbitMqPublisher : IMessagePublisher
+internal sealed class RabbitMqPublisher : IMessagePublisher
 {
     private readonly RabbitMqOptions _options;
     private readonly ILogger<RabbitMqPublisher> _logger;

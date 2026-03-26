@@ -2,54 +2,44 @@
 
 namespace SensorAnalysis.Domain.ValueObjects;
 
-public class SampleAnalysis
+public sealed class SampleAnalysis
 {
-    public MetricAnalysis Temperature { get; private set; }
-    public MetricAnalysis Humidity { get; private set; }
-    public MetricAnalysis DewPoint { get; private set; }
-    public StatusLevel AnomalyStatus { get; private set; }
+    public MetricAnalysis Temperature { get; }
+    public MetricAnalysis Humidity { get; }
+    public MetricAnalysis DewPoint { get; }
+    public StatusLevel AnomalyStatus { get; }
 
-    private SampleAnalysis()
+    private SampleAnalysis(
+        MetricAnalysis temperature,
+        MetricAnalysis humidity,
+        MetricAnalysis dewPoint,
+        StatusLevel anomalyStatus)
     {
-        Temperature = MetricAnalysis.CreateNormal();
-        Humidity = MetricAnalysis.CreateNormal();
-        DewPoint = MetricAnalysis.CreateNormal();
-        AnomalyStatus = StatusLevel.Normal;
+        Temperature = temperature;
+        Humidity = humidity;
+        DewPoint = dewPoint;
+        AnomalyStatus = anomalyStatus;
     }
+
+    public static SampleAnalysis CreateInvalid() => new(
+        MetricAnalysis.CreateInvalid(),
+        MetricAnalysis.CreateInvalid(),
+        MetricAnalysis.CreateInvalid(),
+        StatusLevel.Invalid);
 
     public static SampleAnalysis Create(
         MetricAnalysis temperature,
         MetricAnalysis humidity,
-        MetricAnalysis dewPoint)
-    {
-        return new SampleAnalysis
-        {
-            Temperature = temperature,
-            Humidity = humidity,
-            DewPoint = dewPoint
-        };
-    }
+        MetricAnalysis dewPoint) => new(temperature, humidity, dewPoint, StatusLevel.Normal);
 
-    public void MarkAsAnomaly()
-    {
-        AnomalyStatus = StatusLevel.Anomaly;
-    }
+    public SampleAnalysis AsAnomaly() => new(Temperature, Humidity, DewPoint, StatusLevel.Anomaly);
 
-    public void MarkAsInvalid()
-    {
-        AnomalyStatus = StatusLevel.Invalid;
-    }
+    public bool IsCritical() =>
+        Temperature.Status == StatusLevel.Critical ||
+        Humidity.Status == StatusLevel.Critical ||
+        DewPoint.Status == StatusLevel.Critical;
 
-    public bool IsCritical()
-    {
-        return Temperature.Status == StatusLevel.Critical
-            || Humidity.Status == StatusLevel.Critical
-            || DewPoint.Status == StatusLevel.Critical;
-    }
-
-    public bool IsAnomaly()
-    {
-        return AnomalyStatus == StatusLevel.Anomaly;
-    }
+    public bool IsAnomaly() => AnomalyStatus == StatusLevel.Anomaly;
+    public bool IsInvalid() => AnomalyStatus == StatusLevel.Invalid;
 }
 

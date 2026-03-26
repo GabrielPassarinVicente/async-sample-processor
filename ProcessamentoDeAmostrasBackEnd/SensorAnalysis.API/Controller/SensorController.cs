@@ -1,11 +1,6 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using SensorAnalysis.Application.DTOs;
-using SensorAnalysis.Application.Mappers;
-using SensorAnalysis.Application.Services;
-using SensorAnalysis.Application.UseCases;
-using SensorAnalysis.Domain.Entities;
-using SensorAnalysis.Domain.Interfaces;
+using SensorAnalysis.Application.ApplicationServices;
 
 namespace SensorAnalysis.API.Controllers;
 
@@ -13,23 +8,20 @@ namespace SensorAnalysis.API.Controllers;
 [Route("api/[controller]")]
 public class SensorController : ControllerBase
 {
-    private readonly ProcessSensorFileUseCase _processUseCase;
-    private readonly DownloadResultsUseCase _downloadUseCase;
-    private readonly SensorFileParser _fileParser;
-    private readonly IJobRepository _jobRepository;
+    private readonly ProcessSensorFileService _processService;
+    private readonly DownloadResultsService _downloadService;
+    private readonly GetJobStatusService _getJobStatusService;
     private readonly ILogger<SensorController> _logger;
 
     public SensorController(
-        ProcessSensorFileUseCase processUseCase,
-        DownloadResultsUseCase downloadUseCase,
-        SensorFileParser fileParser,
-        IJobRepository jobRepository,
+        ProcessSensorFileService processService,
+        DownloadResultsService downloadService,
+        GetJobStatusService getJobStatusService,
         ILogger<SensorController> logger)
     {
-        _processUseCase = processUseCase;
-        _downloadUseCase = downloadUseCase;
-        _fileParser = fileParser;
-        _jobRepository = jobRepository;
+        _processService = processService;
+        _downloadService = downloadService;
+        _getJobStatusService = getJobStatusService;
         _logger = logger;
     }
 
@@ -55,17 +47,7 @@ public class SensorController : ControllerBase
         try
         {
             using var stream = file.OpenReadStream();
-            var parseResult = await _fileParser.ParseAsync(stream);
-
-            if (parseResult.IsFailure)
-            {
-                _logger.LogError("❌ Parse failed: {Error}", parseResult.Error!.Message);
-                return BadRequest(new { error = parseResult.Error!.Message });
-            }
-
-            _logger.LogInformation("✅ Parse successful: {Count} samples", parseResult.Value!.Count);
-
-            var result = await _processUseCase.StartAsync(parseResult.Value!);
+            var result = await _processService.StartAsync(stream);
 
             if (result.IsFailure)
             {
@@ -75,10 +57,10 @@ public class SensorController : ControllerBase
 
             _logger.LogInformation("🚀 Job started: {JobId}", result.Value);
 
-            return Accepted(new 
-            { 
-                jobId = result.Value, 
-                message = "Processamento iniciado em background." 
+            return Accepted(new
+            {
+                jobId = result.Value,
+                message = "Processamento iniciado em background."
             });
         }
         catch (Exception ex)
@@ -91,21 +73,18 @@ public class SensorController : ControllerBase
     [HttpGet("status/{jobId}")]
     public async Task<IActionResult> GetStatus(string jobId)
     {
-        var job = await _jobRepository.GetByIdAsync(jobId);
+        var result = await _getJobStatusService.ExecuteAsync(jobId);
 
-        if (job == null)
-        {
-            return NotFound(new { error = "Job não encontrado" });
-        }
+        if (result.IsFailure)
+            return NotFound(new { error = result.Error!.Message });
 
-        var statusDto = JobMapper.ToDto(job);
-        return Ok(statusDto);
+        return Ok(result.Value);
     }
 
     [HttpGet("download/{jobId}")]
     public async Task<IActionResult> DownloadResults(string jobId)
     {
-        var result = await _downloadUseCase.ExecuteAsync(jobId);
+        var result = await _downloadService.ExecuteAsync(jobId);
 
         if (result.IsFailure)
         {

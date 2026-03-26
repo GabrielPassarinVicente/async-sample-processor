@@ -1,10 +1,7 @@
-using SensorAnalysis.Application.Interfaces;
-using SensorAnalysis.Application.UseCases;
-using SensorAnalysis.Domain.Interfaces;
+using SensorAnalysis.Application.ApplicationServices;
+using SensorAnalysis.Application.Services;
 using SensorAnalysis.Domain.Services;
-using SensorAnalysis.Infrastructure.Algorithms;
-using SensorAnalysis.Infrastructure.Messaging;
-using SensorAnalysis.Infrastructure.Persistence;
+using SensorAnalysis.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,22 +17,22 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
-
-builder.Services.Configure<SensorAnalysis.Infrastructure.Configuration.RabbitMqOptions>(
-    builder.Configuration.GetSection("RabbitMqSettings"));
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Domain Services
 builder.Services.AddSingleton<SensorEvaluator>();
 
-builder.Services.AddSingleton<ProcessSensorFileUseCase>();
-builder.Services.AddSingleton<DownloadResultsUseCase>();
-builder.Services.AddSingleton<SensorAnalysis.Application.Services.SensorFileParser>();
+// Application Services
+builder.Services.AddSingleton<SensorFileParser>();
+builder.Services.AddSingleton<ProcessSensorFileService>();
+builder.Services.AddSingleton<DownloadResultsService>();
+builder.Services.AddSingleton<GetJobStatusService>();
 
-builder.Services.AddSingleton<IAnomalyDetector, IqrAnomalyDetector>();
-builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
-builder.Services.AddSingleton<IJobRepository, InMemoryJobRepository>();
+// Infrastructure (implementações internas registradas via extension method)
+builder.Services.Configure<SensorAnalysis.Infrastructure.Configuration.RabbitMqOptions>(
+    builder.Configuration.GetSection("RabbitMqSettings"));
+builder.Services.AddInfrastructure();
 
 var app = builder.Build();
 
