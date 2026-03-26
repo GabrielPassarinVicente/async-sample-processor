@@ -4,6 +4,8 @@ using SensorAnalysis.Application.ApplicationServices;
 
 namespace SensorAnalysis.API.Controllers;
 
+// Camada de Apresentação: recebe requisições HTTP, mapeia para DTOs/comandos e delega
+// Regra: zero lógica de negócio aqui — toda decisão é tomada pela camada de Aplicação
 [ApiController]
 [Route("api/[controller]")]
 public class SensorController : ControllerBase

@@ -5,6 +5,8 @@ using SensorAnalysis.Domain.Interfaces;
 
 namespace SensorAnalysis.Application.ApplicationServices;
 
+// Chamado por: SensorController (Apresentação) via ExecuteAsync()
+// Responsabilidade: orquestração pura — sem regras de negócio
 public class DownloadResultsService
 {
     private readonly IJobRepository _jobRepository;
@@ -14,6 +16,9 @@ public class DownloadResultsService
         _jobRepository = jobRepository;
     }
 
+    // Passo 1: Carrega o Agregado pelo Repository
+    // Passo 2: Consulta o estado do Agregado (CanDownload, IsFailed, IsCompleted)
+    // Sem Passo 3 — operação de leitura, nenhum estado é alterado
     public async Task<Result<DownloadResultDto>> ExecuteAsync(string jobId)
     {
         if (string.IsNullOrWhiteSpace(jobId))
