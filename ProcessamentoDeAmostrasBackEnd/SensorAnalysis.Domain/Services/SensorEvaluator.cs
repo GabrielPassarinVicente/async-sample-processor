@@ -4,20 +4,12 @@ using SensorAnalysis.Domain.ValueObjects;
 
 namespace SensorAnalysis.Domain.Services;
 
-public class SensorEvaluator
+public sealed class SensorEvaluator
 {
     public SampleAnalysis Evaluate(SensorSample sample)
     {
         if (sample.IsInvalid())
-        {
-            var invalidAnalysis = SampleAnalysis.Create(
-                MetricAnalysis.CreateInvalid(),
-                MetricAnalysis.CreateInvalid(),
-                MetricAnalysis.CreateInvalid()
-            );
-            invalidAnalysis.MarkAsInvalid();
-            return invalidAnalysis;
-        }
+            return SampleAnalysis.CreateInvalid();
 
         var temperatureAnalysis = EvaluateMetric(
             sample.Temperature!.Value,

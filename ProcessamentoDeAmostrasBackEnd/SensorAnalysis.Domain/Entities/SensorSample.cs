@@ -1,8 +1,6 @@
-﻿using System;
+﻿namespace SensorAnalysis.Domain.Entities;
 
-namespace SensorAnalysis.Domain.Entities;
-
-public class SensorSample
+public sealed class SensorSample
 {
     public string SensorId { get; private set; } = string.Empty;
     public string Type { get; private set; } = string.Empty;

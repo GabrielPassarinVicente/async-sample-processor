@@ -4,7 +4,6 @@ using SensorAnalysis.Domain.Enums;
 
 namespace SensorAnalysis.Application.Mappers;
 
-
 public static class JobMapper
 {
     public static JobStatusDto ToDto(JobStatus job)
@@ -18,25 +17,19 @@ public static class JobMapper
             ErrorMessage = job.ErrorMessage,
             TotalSamples = job.TotalSamples,
             ProcessedSamples = job.ProcessedSamples,
-            Results = job.Results
-                .OfType<AnalyzedSampleDto>()
-                .ToList()
+            Results = job.Results.Select(SensorMapper.ToDto).ToList()
         };
     }
 
     public static DownloadResultDto ToDownloadDto(JobStatus job)
     {
-        var results = job.Results
-            .OfType<AnalyzedSampleDto>()
-            .ToList();
-
         return new DownloadResultDto
         {
             JobId = job.JobId,
             TotalSamples = job.TotalSamples,
             ProcessedSamples = job.ProcessedSamples,
             CompletedAt = job.CompletedAt ?? DateTime.UtcNow,
-            Results = results
+            Results = job.Results.Select(SensorMapper.ToDto).ToList()
         };
     }
 

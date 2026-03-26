@@ -3,13 +3,13 @@ using SensorAnalysis.Application.Mappers;
 using SensorAnalysis.Domain.Common;
 using SensorAnalysis.Domain.Interfaces;
 
-namespace SensorAnalysis.Application.UseCases;
+namespace SensorAnalysis.Application.ApplicationServices;
 
-public class DownloadResultsUseCase
+public class DownloadResultsService
 {
     private readonly IJobRepository _jobRepository;
 
-    public DownloadResultsUseCase(IJobRepository jobRepository)
+    public DownloadResultsService(IJobRepository jobRepository)
     {
         _jobRepository = jobRepository;
     }
@@ -17,23 +17,23 @@ public class DownloadResultsUseCase
     public async Task<Result<DownloadResultDto>> ExecuteAsync(string jobId)
     {
         if (string.IsNullOrWhiteSpace(jobId))
-            return Result<DownloadResultDto>.Failure(Error.InvalidJobId);
+            return Result<DownloadResultDto>.Failure(ApplicationErrors.InvalidJobId);
 
         var job = await _jobRepository.GetByIdAsync(jobId);
 
         if (job == null)
-            return Result<DownloadResultDto>.Failure(Error.JobNotFound);
+            return Result<DownloadResultDto>.Failure(ApplicationErrors.JobNotFound);
 
         if (job.IsFailed)
             return Result<DownloadResultDto>.Failure(
-                Error.JobFailed(job.ErrorMessage ?? "Unknown error"));
+                ApplicationErrors.JobFailed(job.ErrorMessage ?? "Unknown error"));
 
         if (!job.IsCompleted)
             return Result<DownloadResultDto>.Failure(
-                Error.JobNotCompleted(job.State.ToString()));
+                ApplicationErrors.JobNotCompleted(job.State.ToString()));
 
         if (!job.CanDownload())
-            return Result<DownloadResultDto>.Failure(Error.NoResultsAvailable);
+            return Result<DownloadResultDto>.Failure(ApplicationErrors.NoResultsAvailable);
 
         var downloadDto = JobMapper.ToDownloadDto(job);
 

@@ -19,7 +19,7 @@ public class SensorFileParser
             var rawData = await JsonSerializer.DeserializeAsync<List<SensorSampleDto>>(fileStream, options);
 
             if (rawData == null || rawData.Count == 0)
-                return Result<List<SensorSample>>.Failure(Error.EmptyFile);
+                return Result<List<SensorSample>>.Failure(ApplicationErrors.EmptyFile);
 
             var samples = new List<SensorSample>();
 
@@ -44,13 +44,13 @@ public class SensorFileParser
             }
 
             if (samples.Count == 0)
-                return Result<List<SensorSample>>.Failure(Error.EmptyFile);
+                return Result<List<SensorSample>>.Failure(ApplicationErrors.EmptyFile);
 
             return Result<List<SensorSample>>.Success(samples);
         }
         catch (JsonException)
         {
-            return Result<List<SensorSample>>.Failure(Error.InvalidFormat);
+            return Result<List<SensorSample>>.Failure(ApplicationErrors.InvalidFormat);
         }
     }
 }
