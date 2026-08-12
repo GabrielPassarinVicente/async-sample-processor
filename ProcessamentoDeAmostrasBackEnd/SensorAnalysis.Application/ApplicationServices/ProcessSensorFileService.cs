@@ -1,4 +1,3 @@
-using SensorAnalysis.Application.Interfaces;
 using SensorAnalysis.Application.Services;
 using SensorAnalysis.Domain.Common;
 using SensorAnalysis.Domain.Entities;

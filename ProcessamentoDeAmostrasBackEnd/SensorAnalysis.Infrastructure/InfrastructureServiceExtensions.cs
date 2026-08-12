@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using SensorAnalysis.Application.Interfaces;
 using SensorAnalysis.Domain.Interfaces;
 using SensorAnalysis.Infrastructure.Algorithms;
 using SensorAnalysis.Infrastructure.Messaging;

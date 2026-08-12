@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SensorAnalysis.Domain\SensorAnalysis.Domain.csproj" />
-    <ProjectReference Include="..\SensorAnalysis.Application\SensorAnalysis.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
