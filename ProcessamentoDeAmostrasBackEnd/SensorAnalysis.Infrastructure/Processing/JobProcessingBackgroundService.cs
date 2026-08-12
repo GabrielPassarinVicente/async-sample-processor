@@ -38,11 +38,6 @@ internal sealed class JobProcessingBackgroundService : BackgroundService
             try
             {
                 item.Job.Process(item.Samples, _evaluator, _anomalyDetector);
-
-                foreach (var domainEvent in item.Job.DomainEvents.OfType<SensorAnomalyDetected>())
-                    await _messagePublisher.PublishAsync(domainEvent);
-
-                item.Job.ClearDomainEvents();
                 await _jobRepository.UpdateAsync(item.Job);
             }
             catch (Exception ex)
@@ -50,6 +45,19 @@ internal sealed class JobProcessingBackgroundService : BackgroundService
                 _logger.LogError(ex, "Falha ao processar job {JobId}", item.Job.JobId);
                 item.Job.MarkAsFailed(ex.Message);
                 await _jobRepository.UpdateAsync(item.Job);
+                continue;
+            }
+
+            try
+            {
+                foreach (var domainEvent in item.Job.DomainEvents.OfType<SensorAnomalyDetected>())
+                    await _messagePublisher.PublishAsync(domainEvent);
+
+                item.Job.ClearDomainEvents();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao publicar eventos de anomalia do job {JobId}", item.Job.JobId);
             }
         }
     }
