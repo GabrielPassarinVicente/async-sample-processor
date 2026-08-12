@@ -43,8 +43,13 @@ internal sealed class JobProcessingBackgroundService : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Falha ao processar job {JobId}", item.Job.JobId);
-                item.Job.MarkAsFailed(ex.Message);
-                await _jobRepository.UpdateAsync(item.Job);
+
+                if (!item.Job.IsCompleted)
+                {
+                    item.Job.MarkAsFailed(ex.Message);
+                    await _jobRepository.UpdateAsync(item.Job);
+                }
+
                 continue;
             }
 
