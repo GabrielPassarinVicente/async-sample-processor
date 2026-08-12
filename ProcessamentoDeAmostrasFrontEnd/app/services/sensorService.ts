@@ -1,34 +1,18 @@
 import axios from 'axios'
-import type {
-  SensorStatus, LimitType,
-  SensorMetricResult, AnomalyResult, SensorReading,
-  UploadResponse, JobStatusResponse,
-} from '~/types/sensor'
+import type { SensorReading, UploadResponse, JobStatusResponse } from '~/types/sensor'
 
-function normalizeMetric(raw: Record<string, unknown>): SensorMetricResult {
+function normalizeReading(raw: Partial<SensorReading>): SensorReading {
   return {
-    status:    ((raw.status    ?? raw.Status    ?? 'normal') as SensorStatus),
-    limitType: ((raw.limitType ?? raw.LimitType ?? raw.limit_type ?? null) as LimitType | null),
-  }
-}
-
-function normalizeAnomaly(raw: Record<string, unknown>): AnomalyResult {
-  return { status: ((raw.status ?? raw.Status ?? 'normal') as SensorStatus) }
-}
-
-function normalizeReading(raw: Record<string, unknown>): SensorReading {
-  const rawAnalysis = (raw.analysis ?? raw.Analysis ?? {}) as Record<string, unknown>
-  return {
-    timestamp:   (raw.timestamp   ?? raw.Timestamp   ?? '') as string,
-    type:        (raw.type        ?? raw.Type         ?? 'unknown') as string,
-    temperature: (raw.temperature ?? raw.Temperature ?? null) as number | null,
-    humidity:    (raw.humidity    ?? raw.Humidity    ?? null) as number | null,
-    dewPoint:    (raw.dew_point   ?? raw.dewPoint    ?? raw.DewPoint ?? null) as number | null,
+    timestamp:   raw.timestamp   ?? '',
+    type:        raw.type        ?? 'unknown',
+    temperature: raw.temperature ?? null,
+    humidity:    raw.humidity    ?? null,
+    dewPoint:    raw.dewPoint    ?? null,
     analysis: {
-      temperature: normalizeMetric((rawAnalysis.temperature ?? rawAnalysis.Temperature ?? {}) as Record<string, unknown>),
-      humidity:    normalizeMetric((rawAnalysis.humidity    ?? rawAnalysis.Humidity    ?? {}) as Record<string, unknown>),
-      dewPoint:    normalizeMetric((rawAnalysis.dew_point   ?? rawAnalysis.dewPoint ?? rawAnalysis.DewPoint ?? {}) as Record<string, unknown>),
-      anomaly:     normalizeAnomaly((rawAnalysis.anomaly   ?? rawAnalysis.Anomaly     ?? {}) as Record<string, unknown>),
+      temperature: raw.analysis?.temperature ?? { status: 'normal', limitType: null },
+      humidity:    raw.analysis?.humidity    ?? { status: 'normal', limitType: null },
+      dewPoint:    raw.analysis?.dewPoint    ?? { status: 'normal', limitType: null },
+      anomaly:     raw.analysis?.anomaly     ?? { status: 'normal' },
     },
   }
 }
@@ -50,7 +34,7 @@ export function createSensorService(baseUrl: string) {
       isCompleted:      boolean
       processedSamples: number
       totalSamples:     number
-      results:          Record<string, unknown>[] | null
+      results:          Partial<SensorReading>[] | null
     }>(`/status/${jobId}`)
 
     return {
@@ -71,12 +55,12 @@ export function createSensorService(baseUrl: string) {
       const blob = new Blob([response.data], { type: 'application/json' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
-      
+
       link.href = url
       link.download = `analysis_results_${jobId}.json`
       document.body.appendChild(link)
       link.click()
-      
+
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
     } catch (error) {
