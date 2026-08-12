@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using SensorAnalysis.Application.ApplicationServices;
 
 namespace SensorAnalysis.API.Controllers;
@@ -13,17 +14,20 @@ public class SensorController : ControllerBase
     private readonly ProcessSensorFileService _processService;
     private readonly DownloadResultsService _downloadService;
     private readonly GetJobStatusService _getJobStatusService;
+    private readonly JsonSerializerOptions _downloadJsonOptions;
     private readonly ILogger<SensorController> _logger;
 
     public SensorController(
         ProcessSensorFileService processService,
         DownloadResultsService downloadService,
         GetJobStatusService getJobStatusService,
+        IOptions<JsonOptions> jsonOptions,
         ILogger<SensorController> logger)
     {
         _processService = processService;
         _downloadService = downloadService;
         _getJobStatusService = getJobStatusService;
+        _downloadJsonOptions = jsonOptions.Value.JsonSerializerOptions;
         _logger = logger;
     }
 
@@ -101,13 +105,7 @@ public class SensorController : ControllerBase
             };
         }
 
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-        };
-
-        var json = JsonSerializer.Serialize(result.Value, options);
+        var json = JsonSerializer.Serialize(result.Value, _downloadJsonOptions);
         var bytes = System.Text.Encoding.UTF8.GetBytes(json);
         var fileName = $"sensor_analysis_{jobId}_{DateTime.UtcNow:yyyyMMddHHmmss}.json";
 
