@@ -6,4 +6,5 @@
   <Project Path="SensorAnalysis.Application/SensorAnalysis.Application.csproj" />
   <Project Path="SensorAnalysis.Domain/SensorAnalysis.Domain.csproj" />
   <Project Path="SensorAnalysis.Infrastructure/SensorAnalysis.Infrastructure.csproj" />
+  <Project Path="SensorAnalysis.Domain.Tests/SensorAnalysis.Domain.Tests.csproj" />
 </Solution>
