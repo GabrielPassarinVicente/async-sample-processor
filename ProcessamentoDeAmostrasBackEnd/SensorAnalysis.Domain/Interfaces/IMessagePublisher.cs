@@ -1,10 +1,8 @@
-﻿using SensorAnalysis.Domain.Events;
+using SensorAnalysis.Domain.Events;
 
-namespace SensorAnalysis.Application.Interfaces;
+namespace SensorAnalysis.Domain.Interfaces;
 
 public interface IMessagePublisher
 {
     Task PublishAsync(SensorAnomalyDetected domainEvent);
 }
-
-

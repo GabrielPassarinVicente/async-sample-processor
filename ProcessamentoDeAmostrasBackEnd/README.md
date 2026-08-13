@@ -92,10 +92,13 @@ O fluxo é assíncrono por design: `POST /upload` retorna `202 Accepted` imediat
 O projeto segue **Clean Architecture** com **DDD**, organizado em quatro camadas com dependências apontando sempre para o centro:
 
 ```
-SensorAnalysis.API
-  └── SensorAnalysis.Application
-        └── SensorAnalysis.Infrastructure
-              └── SensorAnalysis.Domain   ← sem dependências externas
+SensorAnalysis.Domain          ← sem dependências externas
+  ↑
+SensorAnalysis.Application     ← depende apenas do Domain
+  ↑
+SensorAnalysis.Infrastructure  ← implementa os contratos do Domain; depende apenas do Domain
+  ↑
+SensorAnalysis.API             ← composition root; referencia as três camadas para configurar a injeção de dependência
 ```
 
 ### Domain
@@ -106,25 +109,26 @@ Núcleo isolado da aplicação. Zero referência a frameworks, ORMs ou bibliotec
 - **Value Objects** — `SampleAnalysis` e `MetricAnalysis` são imutáveis e representam o resultado da avaliação de cada métrica. `MetricThresholds` define os limites de alerta e crítico por grandeza.
 - **Domain Services** — `SensorEvaluator` avalia cada amostra individualmente contra os thresholds e produz um `SampleAnalysis`.
 - **Domain Events** — `SensorAnomalyDetected` é emitido para cada amostra classificada como anômala ou crítica.
-- **Interfaces** — `IJobRepository` e `IAnomalyDetector` são contratos implementados pela Infrastructure, mantendo o Domain desacoplado de detalhes técnicos.
+- **Interfaces** — `IJobRepository`, `IAnomalyDetector`, `IMessagePublisher` e `IJobProcessingQueue` são contratos implementados pela Infrastructure, mantendo o Domain desacoplado de detalhes técnicos.
 - **Common** — `Result<T>` e `Error` implementam retorno explícito de falhas sem uso de exceções como controle de fluxo.
 
 ### Application
 
 Orquestra os casos de uso coordenando domínio e infraestrutura. Não contém regras de negócio.
 
-- **`ProcessSensorFileUseCase`** — recebe as amostras parseadas, cria o `JobStatus`, dispara o processamento em background (fire-and-forget com tratamento interno de exceção) e persiste o estado final ao término.
-- **`DownloadResultsUseCase`** — valida o estado do job e retorna os resultados encapsulados em `Result<DownloadResultDto>`.
+- **`ProcessSensorFileService`** — recebe as amostras parseadas, cria o `JobStatus`, persiste o estado inicial e enfileira o job via `IJobProcessingQueue` — não executa mais o processamento diretamente.
+- **`DownloadResultsService`** / **`GetJobStatusService`** — validam o estado do job e retornam os resultados/status encapsulados em `Result<T>`.
 - **`SensorFileParser`** — deserializa o stream JSON recebido pelo controller e constrói as entidades de domínio.
-- **DTOs e Mappers** — isolam a representação interna do domínio do contrato público da API.
+- **DTOs e Mappers** — isolam a representação interna do domínio do contrato público da API (camelCase, consistente em todos os endpoints).
 
 ### Infrastructure
 
 Implementa os contratos definidos pelo Domain. Aqui residem os detalhes técnicos e as dependências externas.
 
-- **`IqrAnomalyDetector`** — implementa `IAnomalyDetector`. Calcula Q1 e Q3 sobre o conjunto de amostras válidas, deriva os limites via `IQR × 1.5` e marca como anomalia qualquer leitura fora dos bounds.
+- **`IqrAnomalyDetector`** — implementa `IAnomalyDetector`. Calcula Q1 e Q3 (Temperatura, Umidade e Ponto de Orvalho) sobre o conjunto de amostras válidas, deriva os limites via `IQR × 1.5` e marca como anomalia qualquer leitura fora dos bounds.
 - **`RabbitMqPublisher`** — implementa `IMessagePublisher`. Estabelece conexão AMQP, declara a fila como `durable` e publica `SensorAnomalyDetected` serializado em JSON.
 - **`InMemoryJobRepository`** — implementa `IJobRepository` com `ConcurrentDictionary`. `AddAsync` garante unicidade via `TryAdd`; `UpdateAsync` rejeita explicitamente jobs inexistentes.
+- **`ChannelJobProcessingQueue`** + **`JobProcessingBackgroundService`** — implementam `IJobProcessingQueue`. Um `Channel<ProcessingJob>` recebe os jobs enfileirados pela Application e um `BackgroundService` do próprio host os processa, com ciclo de vida gerenciado pelo ASP.NET Core (substitui o antigo fire-and-forget).
 
 ### API
 

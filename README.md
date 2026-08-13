@@ -124,7 +124,7 @@ SensorAnalysis.API             ← Controllers e pipeline HTTP
 ```
 
 - **Domain** concentra as regras de negócio: `JobStatus` (Aggregate Root), `SensorSample`, `SampleAnalysis` (Value Objects), `SensorEvaluator` (Domain Service) e `Result<T>` para retorno explícito de erros.
-- **Application** orquestra os casos de uso (`ProcessSensorFileUseCase`, `DownloadResultsUseCase`) sem conter regras de negócio.
+- **Application** orquestra os casos de uso (`ProcessSensorFileService`, `DownloadResultsService`, `GetJobStatusService`) sem conter regras de negócio.
 - **Infrastructure** implementa os detalhes técnicos: `IqrAnomalyDetector`, `RabbitMqPublisher` e `InMemoryJobRepository`.
 
 ### Front-end — Nuxt 4 (Composition API)
@@ -146,8 +146,8 @@ Como engenheiro, acredito que toda decisão de arquitetura envolve *trade-offs*.
 * **Algoritmo IQR (Interquartile Range) vs. Limiares Fixos:**
   Sensores ambientais geram dados que variam muito dependendo do contexto (estação do ano, localização). Usar *hardcoded thresholds* (ex: "temperatura > 30°C é anomalia") geraria falsos positivos. O IQR foi escolhido porque é um método estatístico robusto que identifica *outliers* com base na própria distribuição do lote de amostras, tornando o sistema adaptável e inteligente, independentemente do ambiente monitorado.
 
-* **Mensageria com RabbitMQ (Desacoplamento):**
-  O processamento de arquivos `.json` com milhares de leituras pode ser custoso. Se a API processasse isso de forma síncrona, a requisição HTTP ficaria presa, prejudicando a UX e o uso de recursos do servidor. O RabbitMQ entra para garantir o padrão *Fire and Forget* na ingestão: a API recebe o arquivo, publica o evento na fila e responde instantaneamente ao cliente. O processamento pesado ocorre em *background*, garantindo resiliência sob carga.
+* **Processamento em background (Channel + BackgroundService) e RabbitMQ para notificações:**
+  O processamento de arquivos `.json` com milhares de leituras pode ser custoso. Se a API processasse isso de forma síncrona, a requisição HTTP ficaria presa, prejudicando a UX e o uso de recursos do servidor. Por isso, o upload apenas enfileira o job em um `Channel` em memória e responde instantaneamente ao cliente; um `BackgroundService` do próprio host consome a fila e faz o processamento pesado, com ciclo de vida gerenciado pelo ASP.NET Core. O RabbitMQ entra depois, exclusivamente para publicar notificações de anomalia detectada — não participa da ingestão do job.
 
 * **Armazenamento In-Memory (`ConcurrentDictionary`) vs. Banco de Dados:**
   Para o escopo de um teste técnico, exigir que o avaliador suba um container de banco de dados (ex: SQL Server ou PostgreSQL) e rode *migrations* adicionaria complexidade e tempo de *setup* desnecessários. Optei por usar um `ConcurrentDictionary` no repositório para gerenciar o estado dos *jobs* de forma *thread-safe*. Isso demonstra domínio de concorrência em C# e mantém o foco no que importa: a modelagem do domínio e a arquitetura, sem sacrificar a Experiência do Desenvolvedor (DX) de quem vai avaliar o projeto.

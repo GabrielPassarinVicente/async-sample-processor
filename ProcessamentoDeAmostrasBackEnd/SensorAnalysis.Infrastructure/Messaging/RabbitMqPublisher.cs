@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using SensorAnalysis.Application.Interfaces;
+using SensorAnalysis.Domain.Interfaces;
 using SensorAnalysis.Domain.Events;
 using SensorAnalysis.Infrastructure.Configuration;
 
