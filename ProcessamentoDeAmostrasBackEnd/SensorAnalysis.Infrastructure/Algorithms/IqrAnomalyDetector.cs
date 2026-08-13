@@ -5,24 +5,33 @@ namespace SensorAnalysis.Infrastructure.Algorithms;
 
 internal sealed class IqrAnomalyDetector : IAnomalyDetector
 {
+    private static readonly (string Name, Func<SensorSample, double> Select)[] Metrics =
+    [
+        ("Temperature", s => s.Temperature!.Value),
+        ("Humidity",    s => s.Humidity!.Value),
+        ("DewPoint",    s => s.DewPoint!.Value),
+    ];
+
     public IReadOnlySet<string> DetectAnomalies(IReadOnlyList<SensorSample> validSamples)
     {
         var anomalies = new HashSet<string>();
 
         if (validSamples.Count < 4) return anomalies;
 
-        var temperatures = validSamples.Select(s => s.Temperature!.Value).ToList();
-        var tempBounds = CalculateBounds(temperatures);
-
-        var humidities = validSamples.Select(s => s.Humidity!.Value).ToList();
-        var humBounds = CalculateBounds(humidities);
+        var boundsByMetric = Metrics.ToDictionary(
+            m => m.Name,
+            m => CalculateBounds(validSamples.Select(m.Select).ToList()));
 
         foreach (var sample in validSamples)
         {
-            bool isTempAnomaly = sample.Temperature < tempBounds.Lower || sample.Temperature > tempBounds.Upper;
-            bool isHumAnomaly = sample.Humidity < humBounds.Lower || sample.Humidity > humBounds.Upper;
+            bool isAnomaly = Metrics.Any(m =>
+            {
+                var value = m.Select(sample);
+                var bounds = boundsByMetric[m.Name];
+                return value < bounds.Lower || value > bounds.Upper;
+            });
 
-            if (isTempAnomaly || isHumAnomaly)
+            if (isAnomaly)
                 anomalies.Add($"{sample.SensorId}_{sample.Timestamp:O}");
         }
 
