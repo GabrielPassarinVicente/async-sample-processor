@@ -5,11 +5,14 @@ using SensorAnalysis.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var corsOrigins = (builder.Configuration["Cors:Origins"] ?? "http://localhost:3000")
+    .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(corsOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .WithExposedHeaders("Content-Disposition");
