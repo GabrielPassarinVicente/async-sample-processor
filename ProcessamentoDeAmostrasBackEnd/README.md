@@ -96,7 +96,7 @@ SensorAnalysis.Domain          ← sem dependências externas
   ↑
 SensorAnalysis.Application     ← depende apenas do Domain
   ↑
-SensorAnalysis.Infrastructure  ← implementa os contratos do Domain; depende de Domain + Application
+SensorAnalysis.Infrastructure  ← implementa os contratos do Domain; depende apenas do Domain
   ↑
 SensorAnalysis.API             ← composition root; referencia as três camadas para configurar a injeção de dependência
 ```

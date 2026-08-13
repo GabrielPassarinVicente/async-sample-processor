@@ -46,8 +46,15 @@ internal sealed class JobProcessingBackgroundService : BackgroundService
 
                 if (!item.Job.IsCompleted)
                 {
-                    item.Job.MarkAsFailed(ex.Message);
-                    await _jobRepository.UpdateAsync(item.Job);
+                    try
+                    {
+                        item.Job.MarkAsFailed(ex.Message);
+                        await _jobRepository.UpdateAsync(item.Job);
+                    }
+                    catch (Exception recoveryEx)
+                    {
+                        _logger.LogError(recoveryEx, "Falha ao registrar falha do job {JobId}", item.Job.JobId);
+                    }
                 }
 
                 continue;
